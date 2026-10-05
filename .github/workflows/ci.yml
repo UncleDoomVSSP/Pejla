@@ -3,12 +3,11 @@ name: Build and test
 on:
   push:
     branches: ["**"]
-    tags-ignore: ["v*"]
   pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -28,7 +27,7 @@ jobs:
 
       - name: Build app bundle
         env:
-          PEJLA_VERSION: 0.0.0
+          PEJLA_VERSION: 0.0.${{ github.run_number }}
           PEJLA_BUILD: ${{ github.run_number }}
         run: Scripts/build-app.sh
 
@@ -38,11 +37,52 @@ jobs:
           lipo -info dist/Pejla.app/Contents/MacOS/Pejla
           test -f dist/Pejla.app/Contents/Resources/AppIcon.icns
 
+      - name: Name the download files
+        run: |
+          cp dist/Pejla-*.dmg dist/Pejla.dmg
+          cp dist/Pejla-*.zip dist/Pejla.zip
+          cd dist
+          shasum -a 256 Pejla.dmg Pejla.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
-          name: Pejla-dev-${{ github.run_number }}
+          name: Pejla-build-${{ github.run_number }}
           path: |
-            dist/*.dmg
-            dist/*.zip
+            dist/Pejla.dmg
+            dist/Pejla.zip
+            dist/SHA256SUMS.txt
           if-no-files-found: error
+
+      # Every push replaces the files behind the fixed download links in the
+      # README: .../releases/download/latest/Pejla.dmg and Pejla.zip.
+      - name: Move the "latest" tag to this commit
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f latest
+          git push -f origin latest
+
+      - name: Publish the latest build
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Pejla (latest build)
+          make_latest: true
+          files: |
+            dist/Pejla.dmg
+            dist/Pejla.zip
+            dist/SHA256SUMS.txt
+          body: |
+            The newest build of Pejla, updated automatically from commit ${{ github.sha }} (build ${{ github.run_number }}).
+
+            ## Install on a Mac
+
+            1. Download **Pejla.dmg** below.
+            2. Open it and drag **Pejla** into **Applications**.
+            3. The first launch needs one extra step because the app is not notarised with Apple. The steps are in the [README](https://github.com/${{ github.repository }}#first-launch).
+
+            **Pejla.zip** contains the same app without the disk image: unzip it and move Pejla to Applications.

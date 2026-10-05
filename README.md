@@ -6,11 +6,15 @@ The name is Swedish: *att pejla* means to take a bearing, to find out where some
 
 ## Download and install (no GitHub knowledge needed)
 
-1. Go to the [latest release](https://github.com/UncleDoomVSSP/Pejla/releases/latest).
-2. Under **Assets**, click the file ending in **.dmg** (for example `Pejla-1.0.0.dmg`). It lands in your Downloads folder.
-3. Double-click the downloaded file. A window opens showing **Pejla** and a shortcut to **Applications**.
-4. Drag **Pejla** onto **Applications**.
-5. Eject the Pejla disk image (click the eject symbol next to it in Finder's sidebar) and delete the .dmg if you like.
+**[Download Pejla.dmg](https://github.com/UncleDoomVSSP/Pejla/releases/download/latest/Pejla.dmg)**
+
+1. Click the link above. The file `Pejla.dmg` lands in your Downloads folder.
+2. Double-click `Pejla.dmg`. A window opens showing **Pejla** and a shortcut to **Applications**.
+3. Drag **Pejla** onto **Applications**.
+4. Eject the Pejla disk image (click the eject symbol next to it in Finder's sidebar) and delete `Pejla.dmg` if you like.
+5. Open **Pejla** from Applications. See **First launch** below for the one-off security step.
+
+If you prefer a plain zip, [Pejla.zip](https://github.com/UncleDoomVSSP/Pejla/releases/download/latest/Pejla.zip) unpacks straight to `Pejla.app`. Both files are rebuilt by the repository's own build every time the code changes, so the links always give the newest version. Checksums are on the [download page](https://github.com/UncleDoomVSSP/Pejla/releases/tag/latest).
 
 Pejla runs on macOS 13 Ventura or newer, on both Apple silicon and Intel Macs.
 
@@ -88,7 +92,9 @@ Scripts/build-app.sh       # build dist/Pejla.app, a .dmg and a .zip
 
 ## Releasing
 
-Pushing a tag such as `v1.0.0` runs the Release workflow, which builds, tests, packages and publishes the .dmg and .zip on the [releases page](https://github.com/UncleDoomVSSP/Pejla/releases). The workflow can also be started by hand from the Actions tab with a version number.
+Every push runs the Build and test workflow. If the build passes, it uploads `Pejla.dmg` and `Pejla.zip` to the rolling [latest build](https://github.com/UncleDoomVSSP/Pejla/releases/tag/latest) release, which is what the download links above point to.
+
+Numbered releases are separate. Pushing a tag such as `v1.0.0` runs the Release workflow, which builds, tests, packages and publishes a versioned .dmg and .zip on the [releases page](https://github.com/UncleDoomVSSP/Pejla/releases). The workflow can also be started by hand from the Actions tab with a version number.
 
 ```
 git tag v1.0.0

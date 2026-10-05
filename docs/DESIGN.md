@@ -45,7 +45,7 @@ The table shows only addresses with evidence of a device. Rows appear as they ar
 
 GitHub Actions builds on a macOS runner:
 
-- `ci.yml` runs `swift test` and `Scripts/build-app.sh` on every push and pull request, and keeps the .dmg and .zip as a build artefact.
+- `ci.yml` runs `swift test` and `Scripts/build-app.sh` on every push and pull request, keeps the .dmg and .zip as a build artefact, and on every push also uploads them under fixed names (`Pejla.dmg`, `Pejla.zip`) to a rolling release tagged `latest`. The README links to those fixed URLs, so a download is always available without anyone cutting a release by hand.
 - `release.yml` runs on tags matching `v*` (or by hand with a version number), builds a universal binary, and publishes the .dmg, .zip and SHA-256 checksums as a GitHub Release with install notes in the body.
 
 `Scripts/build-app.sh` assembles the bundle by hand: binary, Info.plist with the version substituted, the icon converted with `sips` and `iconutil`, the vendor registry, then an ad hoc code signature (required to run at all on Apple silicon) and `hdiutil` for the disk image.
