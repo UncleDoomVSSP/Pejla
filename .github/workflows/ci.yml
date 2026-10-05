@@ -19,7 +19,7 @@ jobs:
     name: macOS build
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Toolchain
         run: |
@@ -51,7 +51,7 @@ jobs:
           cat SHA256SUMS.txt
 
       - name: Upload build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Pejla-build-${{ github.run_number }}
           path: |
@@ -72,23 +72,24 @@ jobs:
 
       - name: Publish the latest build
         if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
-        with:
-          fail_on_unmatched_files: true
-          tag_name: latest
-          name: Pejla (latest build)
-          make_latest: true
-          files: |
-            dist/Pejla.dmg
-            dist/Pejla.zip
-            dist/SHA256SUMS.txt
-          body: |
-            The newest build of Pejla, updated automatically from commit ${{ github.sha }} (build ${{ github.run_number }}).
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > "$RUNNER_TEMP/notes.md" <<'NOTES'
+          The newest build of Pejla, updated automatically from commit ${{ github.sha }} (build ${{ github.run_number }}).
 
-            ## Install on a Mac
+          ## Install on a Mac
 
-            1. Download **Pejla.dmg** below.
-            2. Open it and drag **Pejla** into **Applications**.
-            3. The first launch needs one extra step because the app is not notarised with Apple. The steps are in the [README](https://github.com/${{ github.repository }}#first-launch).
+          1. Download **Pejla.dmg** below.
+          2. Open it and drag **Pejla** into **Applications**.
+          3. The first launch needs one extra step because the app is not notarised with Apple. The steps are in the [README](https://github.com/${{ github.repository }}#first-launch).
 
-            **Pejla.zip** contains the same app without the disk image: unzip it and move Pejla to Applications.
+          **Pejla.zip** contains the same app without the disk image: unzip it and move Pejla to Applications.
+          NOTES
+          if gh release view latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit latest --repo "$GITHUB_REPOSITORY" --title "Pejla (latest build)" --notes-file "$RUNNER_TEMP/notes.md" --latest --draft=false --prerelease=false
+          else
+            gh release create latest --repo "$GITHUB_REPOSITORY" --title "Pejla (latest build)" --notes-file "$RUNNER_TEMP/notes.md" --latest
+          fi
+          gh release upload latest --repo "$GITHUB_REPOSITORY" --clobber dist/Pejla.dmg dist/Pejla.zip dist/SHA256SUMS.txt
+          gh release view latest --repo "$GITHUB_REPOSITORY"
