@@ -92,14 +92,21 @@ Scripts/build-app.sh       # build dist/Pejla.app, a .dmg and a .zip
 
 ## Releasing
 
-Every push runs the Build and test workflow. If the build passes, it uploads `Pejla.dmg` and `Pejla.zip` to the rolling [latest build](https://github.com/UncleDoomVSSP/Pejla/releases/tag/latest) release, which is what the download links above point to.
+Every push runs the Build and test workflow. If the build passes, it uploads `Pejla.dmg` and `Pejla.zip` to the rolling [latest build](https://github.com/UncleDoomVSSP/Pejla/releases/tag/latest) pre-release, which is what the download links above point to.
 
-Numbered releases are separate. Pushing a tag such as `v1.0.0` runs the Release workflow, which builds, tests, packages and publishes a versioned .dmg and .zip on the [releases page](https://github.com/UncleDoomVSSP/Pejla/releases). The workflow can also be started by hand from the Actions tab with a version number.
+Numbered releases get their own files. Any of these starts the Release workflow, which tests, builds and attaches `Pejla-<version>.dmg`, `Pejla-<version>.zip` and `SHA256SUMS.txt` to the release within a few minutes:
 
-```
-git tag v1.0.0
-git push origin v1.0.0
-```
+- On GitHub, open **Releases**, click **Draft a new release**, choose or create a tag such as `v1.2.0`, and click **Publish release**. The files appear under Assets when the build finishes.
+- Push a tag from the command line:
+
+  ```
+  git tag v1.2.0
+  git push origin v1.2.0
+  ```
+
+- Open the **Actions** tab, choose **Release**, click **Run workflow** and enter a tag or version. An existing tag is built as it is, so this is also the way to add files to a release that was created without them.
+
+Tags may be written `v1.2.0`, `v.1.2.0` or `1.2.0`; the version shown in the app and in the file names is `1.2.0`.
 
 ## Repository layout
 
