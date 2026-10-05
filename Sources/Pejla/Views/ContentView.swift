@@ -14,6 +14,11 @@ struct ContentView: View {
         return filtered.sorted(using: sortOrder)
     }
 
+    private var subtitle: String {
+        guard let interface = model.selectedInterface else { return "No network interface" }
+        return "\(interface.displayName) - \(interface.network.description)"
+    }
+
     private var selectedHost: ScannedHost? {
         guard let selection else { return nil }
         return scanner.hosts.first { $0.id == selection }
@@ -39,7 +44,7 @@ struct ContentView: View {
         .toolbar { toolbarContent }
         .searchable(text: $filter, placement: .toolbar, prompt: "Filter devices")
         .navigationTitle("Pejla")
-        .navigationSubtitle(model.selectedInterface.map { "\($0.displayName) - \($0.network)" } ?? "No network interface")
+        .navigationSubtitle(subtitle)
     }
 
     private var hostTable: some View {

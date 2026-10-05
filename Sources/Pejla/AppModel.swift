@@ -34,9 +34,9 @@ final class AppModel: ObservableObject {
         scanner.objectWillChange
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
-        Task.detached(priority: .utility) { [weak self] in
-            let database = OUIDatabase.preferred()
-            await MainActor.run { self?.oui = database }
+        Task { [weak self] in
+            let database = await Task.detached(priority: .utility) { OUIDatabase.preferred() }.value
+            self?.oui = database
         }
     }
 
