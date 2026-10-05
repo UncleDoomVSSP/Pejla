@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 1.0.0 (a tag v<version> is created)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Work out the version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            version="${{ github.event.inputs.version }}"
+          else
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: swift test
+
+      - name: Build app bundle
+        env:
+          PEJLA_VERSION: ${{ steps.version.outputs.version }}
+          PEJLA_BUILD: ${{ github.run_number }}
+        run: Scripts/build-app.sh
+
+      - name: Checksums
+        run: |
+          cd dist
+          shasum -a 256 Pejla-*.dmg Pejla-*.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create tag for manual runs
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "${{ steps.version.outputs.tag }}"
+          git push -f origin "${{ steps.version.outputs.tag }}"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Pejla ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            dist/Pejla-*.dmg
+            dist/Pejla-*.zip
+            dist/SHA256SUMS.txt
+          body: |
+            ## Install on a Mac
+
+            1. Download **Pejla-${{ steps.version.outputs.version }}.dmg** below.
+            2. Open it and drag **Pejla** into **Applications**.
+            3. The first launch needs one extra step because the app is not notarised with Apple. The steps are in the [README](https://github.com/${{ github.repository }}#first-launch).

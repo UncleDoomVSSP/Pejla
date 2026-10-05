@@ -1,0 +1,48 @@
+name: Build and test
+
+on:
+  push:
+    branches: ["**"]
+    tags-ignore: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: macOS build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+
+      - name: Test
+        run: swift test
+
+      - name: Build app bundle
+        env:
+          PEJLA_VERSION: 0.0.0
+          PEJLA_BUILD: ${{ github.run_number }}
+        run: Scripts/build-app.sh
+
+      - name: Smoke test bundle
+        run: |
+          plutil -lint dist/Pejla.app/Contents/Info.plist
+          lipo -info dist/Pejla.app/Contents/MacOS/Pejla
+          test -f dist/Pejla.app/Contents/Resources/AppIcon.icns
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pejla-dev-${{ github.run_number }}
+          path: |
+            dist/*.dmg
+            dist/*.zip
+          if-no-files-found: error
