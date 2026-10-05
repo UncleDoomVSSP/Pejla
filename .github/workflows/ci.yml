@@ -9,6 +9,11 @@ on:
 permissions:
   contents: write
 
+# Builds publish to the same "latest" release, so never let two overlap.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: macOS build
@@ -69,6 +74,7 @@ jobs:
         if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
+          fail_on_unmatched_files: true
           tag_name: latest
           name: Pejla (latest build)
           make_latest: true
