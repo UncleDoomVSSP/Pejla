@@ -23,12 +23,22 @@ jobs:
         id: version
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            version="${{ github.event.inputs.version }}"
+            raw="${{ github.event.inputs.version }}"
           else
-            version="${GITHUB_REF_NAME#v}"
+            raw="$GITHUB_REF_NAME"
+          fi
+          # Accept v1.2.0, v.1.2.0 or 1.2.0 and normalise to 1.2.0.
+          version="$(printf '%s' "$raw" | sed -E 's/^[vV]\.?//')"
+          if ! [[ "$version" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "Cannot work out a version number from '$raw'" >&2
+            exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Test
         run: swift test
