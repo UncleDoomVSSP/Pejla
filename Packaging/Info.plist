@@ -29,7 +29,7 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright (c) 2026 Vintersol Ltd. Released under the MIT License.</string>
+	<string>Copyright (c) 2026 Vintersol Ltd</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Pejla scans the network you are connected to so it can list the devices on it.</string>
 	<key>NSPrincipalClass</key>
