@@ -18,8 +18,7 @@ on:
         description: "Tag or version to build (v1.2.0, v.1.2.0 or 1.2.0). An existing tag is reused, otherwise v<version> is created from the chosen branch."
         required: true
 
-permissions:
-  contents: write
+permissions: {}
 
 concurrency:
   group: release-${{ github.event.inputs.version || github.ref_name }}
@@ -29,10 +28,13 @@ jobs:
   release:
     name: Build and publish
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Work out the version and tag
         id: version
@@ -95,11 +97,12 @@ jobs:
 
       - name: Create the tag
         if: steps.version.outputs.create_tag == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ steps.version.outputs.tag }}"
-          git push origin "${{ steps.version.outputs.tag }}"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" >/dev/null
+          echo "$TAG -> $GITHUB_SHA"
 
       - name: Publish release and attach files
         env:

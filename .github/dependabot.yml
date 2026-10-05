@@ -1,0 +1,15 @@
+# Keeps the commit-pinned GitHub Actions and any Swift package
+# dependencies current. Updates arrive as pull requests.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns: ["*"]
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"

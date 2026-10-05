@@ -52,6 +52,10 @@ GitHub Actions builds on a macOS runner:
 
 Because the app is not notarised, Gatekeeper shows a warning on first launch. The README walks through the two ways round it, which differ between macOS 14 and 15.
 
+## Security checks
+
+`security.yml` runs Trivy (filesystem scan: vulnerabilities, secrets, misconfigurations, licences; HIGH and CRITICAL fail the run), CodeQL for Swift on a macOS runner and for the workflow files on Linux, zizmor for workflow hygiene, and OpenSSF Scorecard on the default branch. All results are uploaded as SARIF to GitHub code scanning. Actions are pinned to commit SHAs with version comments, checkouts do not persist credentials, tags are moved through the GitHub API with the job token, and Dependabot keeps the pins current.
+
 ## Privacy and permissions
 
 - No sandbox entitlements, because the app runs `/usr/sbin/arp` and opens raw TCP connections to arbitrary local addresses.

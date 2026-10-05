@@ -6,8 +6,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
 
 # Builds publish to the same "latest" release, so never let two overlap.
 concurrency:
@@ -18,8 +17,12 @@ jobs:
   build:
     name: macOS build
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Toolchain
         run: |
@@ -51,7 +54,7 @@ jobs:
           cat SHA256SUMS.txt
 
       - name: Upload build
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Pejla-build-${{ github.run_number }}
           path: |
@@ -64,25 +67,29 @@ jobs:
       # README: .../releases/download/latest/Pejla.dmg and Pejla.zip.
       - name: Move the "latest" tag to this commit
         if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -f latest
-          git push -f origin latest
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/latest" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/latest" -f sha="$GITHUB_SHA" -F force=true >/dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/latest" -f sha="$GITHUB_SHA" >/dev/null
+          fi
+          echo "latest -> $GITHUB_SHA"
 
       - name: Publish the latest build
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cat > "$RUNNER_TEMP/notes.md" <<'NOTES'
-          The newest build of Pejla, updated automatically from commit ${{ github.sha }} (build ${{ github.run_number }}). Numbered releases are listed separately on the releases page.
+          cat > "$RUNNER_TEMP/notes.md" <<NOTES
+          The newest build of Pejla, updated automatically from commit $GITHUB_SHA (build $GITHUB_RUN_NUMBER). Numbered releases are listed separately on the releases page.
 
           ## Install on a Mac
 
           1. Download **Pejla.dmg** below.
           2. Open it and drag **Pejla** into **Applications**.
-          3. The first launch needs one extra step because the app is not notarised with Apple. The steps are in the [README](https://github.com/${{ github.repository }}#first-launch).
+          3. The first launch needs one extra step because the app is not notarised with Apple. The steps are in the [README](https://github.com/$GITHUB_REPOSITORY#first-launch).
 
           **Pejla.zip** contains the same app without the disk image: unzip it and move Pejla to Applications.
           NOTES
