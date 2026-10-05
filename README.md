@@ -108,6 +108,17 @@ Numbered releases get their own files. Any of these starts the Release workflow,
 
 Tags may be written `v1.2.0`, `v.1.2.0` or `1.2.0`; the version shown in the app and in the file names is `1.2.0`.
 
+## Security checks
+
+A Security workflow runs on every push and pull request, and weekly:
+
+- **Trivy** scans the repository for vulnerable dependencies, leaked secrets, misconfigured infrastructure files and licence problems. High or critical findings fail the build.
+- **CodeQL** analyses the Swift code and the GitHub Actions workflow files with GitHub's security-extended query set.
+- **zizmor** audits the workflow files themselves for unsafe patterns such as template injection or unpinned actions.
+- **OpenSSF Scorecard** rates the repository's supply-chain practices on the main branch.
+
+Results appear under **Security > Code scanning** on GitHub. Every action in the workflows is pinned to a commit, and Dependabot opens pull requests to keep those pins and any Swift packages current.
+
 ## Repository layout
 
 ```
@@ -117,7 +128,8 @@ Sources/Pejla/                SwiftUI app
 Tests/PejlaCoreTests/         unit tests
 Packaging/                    Info.plist and the app icon source
 Scripts/                      build, icon and vendor-list scripts
-.github/workflows/            CI build on every push, release on tags
+.github/workflows/            build, release and security workflows
+.github/dependabot.yml        keeps actions and packages up to date
 docs/DESIGN.md                design notes
 LICENSE                       MIT licence
 ```
