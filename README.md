@@ -112,4 +112,9 @@ Packaging/                    Info.plist and the app icon source
 Scripts/                      build, icon and vendor-list scripts
 .github/workflows/            CI build on every push, release on tags
 docs/DESIGN.md                design notes
+LICENSE                       MIT licence
 ```
+
+## Licence
+
+Pejla is released under the MIT License. Copyright (c) 2026 Vintersol Ltd. See [LICENSE](LICENSE).
