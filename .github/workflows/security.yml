@@ -68,6 +68,7 @@ jobs:
   codeql:
     name: CodeQL (${{ matrix.language }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     permissions:
       contents: read
       security-events: write
@@ -88,6 +89,16 @@ jobs:
         with:
           persist-credentials: false
 
+      # Compile the package manifest before CodeQL's tracer is active. SwiftPM
+      # compiles Package.swift inside a sandbox, and the traced compiler cannot
+      # write its output from there, which stalls the build indefinitely.
+      - name: Prepare the Swift package
+        if: matrix.build-mode == 'manual'
+        run: |
+          swift --version
+          swift package resolve
+          swift package describe > /dev/null
+
       - name: Initialise CodeQL
         uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
@@ -97,7 +108,8 @@ jobs:
 
       - name: Build
         if: matrix.build-mode == 'manual'
-        run: swift build
+        timeout-minutes: 25
+        run: swift build --disable-sandbox
 
       - name: Analyse
         uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
